@@ -1,9 +1,10 @@
 import re
+import io
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
-import fitz  # PyMuPDF
+import pdfplumber
 from typing import Optional
 
 app = FastAPI(title="AI Text Humanizer")
@@ -151,11 +152,12 @@ def humanize_text(text: str) -> dict:
 async def extract_pdf_text(file: UploadFile) -> str:
     """Extract text from uploaded PDF."""
     content = await file.read()
-    doc = fitz.open(stream=content, filetype="pdf")
     text = ""
-    for page in doc:
-        text += page.get_text()
-    doc.close()
+    with pdfplumber.open(io.BytesIO(content)) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
     return text
 
 
