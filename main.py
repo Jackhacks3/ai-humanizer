@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 import pdfplumber
 from typing import Optional
 
-app = FastAPI(title="AI Text Humanizer")
+app = FastAPI(title="ByeDash")
 
 app.add_middleware(
     CORSMiddleware,
@@ -168,360 +168,829 @@ async def root():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Text Humanizer</title>
+    <title>ByeDash</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --border: #262626;
+            --border-hover: #404040;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1a1;
+            --text-muted: #525252;
+            --accent: #22c55e;
+            --accent-dim: rgba(34, 197, 94, 0.1);
+            --accent-border: rgba(34, 197, 94, 0.3);
+            --danger: #ef4444;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            font-size: 15px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            color: #e4e4e4;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 1200px;
+        .app {
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 0 24px;
         }
 
-        header {
+        /* Navigation */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--bg-primary);
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: color 0.15s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0 60px;
             text-align: center;
-            margin-bottom: 40px;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent-border);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 24px;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(90deg, #e94560, #0f3460);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
+            font-size: 48px;
+            font-weight: 600;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 16px;
         }
 
-        .subtitle {
-            color: #888;
-            font-size: 1.1rem;
+        .hero p {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
 
-        .main-content {
+        /* Main Editor */
+        .editor-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
         }
 
         @media (max-width: 900px) {
-            .main-content {
+            .editor-container {
                 grid-template-columns: 1fr;
             }
         }
 
-        .panel {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 24px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .editor-panel {
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
         }
 
-        .panel h2 {
-            font-size: 1.2rem;
-            margin-bottom: 16px;
-            color: #e94560;
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-tertiary);
+        }
+
+        .panel-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .icon-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .editor-area {
+            flex: 1;
+            position: relative;
         }
 
         textarea {
             width: 100%;
-            height: 300px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 16px;
-            color: #e4e4e4;
-            font-size: 14px;
-            line-height: 1.6;
-            resize: vertical;
-            font-family: inherit;
+            height: 400px;
+            background: transparent;
+            border: none;
+            padding: 20px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            resize: none;
         }
 
         textarea:focus {
             outline: none;
-            border-color: #e94560;
         }
 
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .output-area {
+            position: relative;
+        }
+
+        #outputText {
+            background: var(--bg-secondary);
+        }
+
+        /* Upload Zone */
         .upload-zone {
-            border: 2px dashed rgba(233, 69, 96, 0.5);
+            margin: 16px;
+            padding: 32px;
+            border: 1px dashed var(--border);
             border-radius: 8px;
-            padding: 30px;
             text-align: center;
-            margin-bottom: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
 
         .upload-zone:hover {
-            border-color: #e94560;
-            background: rgba(233, 69, 96, 0.1);
+            border-color: var(--border-hover);
+            background: var(--bg-tertiary);
         }
 
         .upload-zone.dragover {
-            border-color: #e94560;
-            background: rgba(233, 69, 96, 0.2);
+            border-color: var(--accent);
+            background: var(--accent-dim);
         }
 
         .upload-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .upload-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .upload-text span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
 
         input[type="file"] {
             display: none;
         }
 
-        .btn {
-            background: linear-gradient(90deg, #e94560, #0f3460);
-            color: white;
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border);
+        }
+
+        .char-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
             border: none;
-            padding: 14px 28px;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            width: 100%;
-            margin-top: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            font-weight: 600;
+            transition: all 0.15s;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+        .btn-primary:hover {
+            background: #e5e5e5;
+            transform: translateY(-1px);
         }
 
-        .btn:disabled {
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 16px;
+        .btn-primary svg {
+            width: 16px;
+            height: 16px;
         }
 
-        .stat {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 12px;
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary.success {
+            color: var(--accent);
+            border-color: var(--accent-border);
+            background: var(--accent-dim);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
             border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .stats-bar.visible {
+            display: grid;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 16px 20px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #e94560;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-value.positive {
+            color: var(--accent);
+        }
+
+        .stat-value.negative {
+            color: var(--danger);
         }
 
         .stat-label {
-            font-size: 0.75rem;
-            color: #888;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .changes-list {
-            margin-top: 16px;
-            background: rgba(0, 0, 0, 0.2);
+        /* Changes Log */
+        .changes-log {
+            display: none;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 16px;
-            max-height: 150px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .changes-log.visible {
+            display: block;
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .log-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .log-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 2px 8px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-radius: 100px;
+        }
+
+        .log-list {
+            padding: 12px 16px;
+            max-height: 160px;
             overflow-y: auto;
         }
 
-        .changes-list h3 {
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            color: #e94560;
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
         }
 
-        .changes-list ul {
-            list-style: none;
-        }
-
-        .changes-list li {
-            padding: 4px 0;
-            font-size: 0.85rem;
-            color: #aaa;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .changes-list li:last-child {
+        .log-item:last-child {
             border-bottom: none;
         }
 
-        .copy-btn {
-            background: rgba(233, 69, 96, 0.2);
-            color: #e94560;
-            border: 1px solid #e94560;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 12px;
-            transition: all 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: #e94560;
-            color: white;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(233, 69, 96, 0.3);
-            border-top-color: #e94560;
+        .log-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-dim);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .log-icon svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        /* Features Grid */
+        .features {
+            padding: 60px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .features-header h2 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .features-header p {
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            padding: 24px;
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+
+        .feature-card h3 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .feature-card code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 2px 6px;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .ai-tells {
-            margin-top: 40px;
-            padding: 24px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
+        .loading-text {
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
-        .ai-tells h3 {
-            color: #e94560;
-            margin-bottom: 16px;
+        /* Keyboard shortcut hint */
+        .shortcut {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
         }
 
-        .tells-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-        }
-
-        .tell-item {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 16px;
-            border-radius: 8px;
-        }
-
-        .tell-item strong {
-            color: #e94560;
-        }
-
-        .tell-item code {
-            background: rgba(233, 69, 96, 0.2);
-            padding: 2px 6px;
+        .key {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 2px 5px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
             border-radius: 4px;
-            font-size: 0.85rem;
+            color: var(--text-muted);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>AI Text Humanizer</h1>
-            <p class="subtitle">Remove AI writing patterns from Claude, GPT, and other models</p>
-        </header>
+    <div class="app">
+        <nav>
+            <div class="logo">
+                <div class="logo-mark">B</div>
+                <span class="logo-text">ByeDash</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="https://github.com/Jackhacks3/ai-humanizer" target="_blank">GitHub</a>
+            </div>
+        </nav>
 
-        <div class="main-content">
-            <div class="panel">
-                <h2>Input</h2>
+        <section class="hero">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                Strip AI fingerprints instantly
+            </div>
+            <h1>Make AI text undetectable</h1>
+            <p>Remove formatting patterns, stylistic tells, and structural markers that flag content as AI-generated. Works with Claude, GPT, Gemini, and more.</p>
+        </section>
 
+        <div class="editor-container">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Input</span>
+                    <div class="panel-actions">
+                        <button class="icon-btn" id="clearBtn" title="Clear">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
                 <div class="upload-zone" id="dropZone">
-                    <div class="upload-icon">📄</div>
-                    <p>Drop PDF here or click to upload</p>
-                    <p style="font-size: 12px; color: #666; margin-top: 8px;">or paste text below</p>
+                    <div class="upload-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <p class="upload-text"><span>Click to upload</span> or drag and drop</p>
+                    <p class="upload-hint">PDF or TXT files supported</p>
                 </div>
                 <input type="file" id="fileInput" accept=".pdf,.txt">
-
-                <textarea id="inputText" placeholder="Paste your AI-generated text here...
-
-Example AI patterns that will be removed:
-- **Bold text** like this
-- Double dashes -- like this
-- # Markdown headers
-- Numbered lists (1. 2. 3.)
-- Em dashes — like this
-- 'Let me explain...', 'Here's...', 'Certainly!'"></textarea>
-
-                <button class="btn" id="humanizeBtn">Humanize Text</button>
+                <div class="editor-area">
+                    <textarea id="inputText" placeholder="Paste your AI-generated text here..."></textarea>
+                </div>
+                <div class="action-bar">
+                    <span class="char-count"><span id="inputCount">0</span> characters</span>
+                    <button class="btn-primary" id="processBtn">
+                        Process
+                        <span class="shortcut">
+                            <span class="key">Ctrl</span>
+                            <span class="key">Enter</span>
+                        </span>
+                    </button>
+                </div>
             </div>
-
-            <div class="panel">
-                <h2>Output</h2>
-
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>Processing...</p>
-                </div>
-
-                <textarea id="outputText" readonly placeholder="Humanized text will appear here..."></textarea>
-
-                <button class="copy-btn" id="copyBtn">Copy to Clipboard</button>
-
-                <div class="stats" id="stats" style="display: none;">
-                    <div class="stat">
-                        <div class="stat-value" id="originalLen">0</div>
-                        <div class="stat-label">Original</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value" id="humanizedLen">0</div>
-                        <div class="stat-label">Cleaned</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value" id="reduction">0</div>
-                        <div class="stat-label">Removed</div>
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Output</span>
+                    <div class="panel-actions">
+                        <button class="btn-secondary" id="copyBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            Copy
+                        </button>
                     </div>
                 </div>
-
-                <div class="changes-list" id="changesList" style="display: none;">
-                    <h3>Changes Made</h3>
-                    <ul id="changesUl"></ul>
+                <div class="editor-area output-area">
+                    <textarea id="outputText" readonly placeholder="Processed text will appear here..."></textarea>
+                    <div class="loading-overlay" id="loading">
+                        <div class="loader"></div>
+                        <span class="loading-text">Processing...</span>
+                    </div>
+                </div>
+                <div class="action-bar">
+                    <span class="char-count"><span id="outputCount">0</span> characters</span>
+                    <span class="char-count" id="reductionText" style="color: var(--accent);"></span>
                 </div>
             </div>
         </div>
 
-        <div class="ai-tells">
-            <h3>AI Writing Patterns Detected & Removed</h3>
-            <div class="tells-grid">
-                <div class="tell-item">
-                    <strong>Claude</strong>
-                    <p><code>**bold text**</code> overuse, structured lists, "Let me..."</p>
-                </div>
-                <div class="tell-item">
-                    <strong>GPT</strong>
-                    <p><code>--</code> double dashes, em dashes <code>—</code>, "Certainly!"</p>
-                </div>
-                <div class="tell-item">
-                    <strong>Markdown</strong>
-                    <p><code># Headers</code>, <code>`code`</code>, <code>[links](url)</code></p>
-                </div>
-                <div class="tell-item">
-                    <strong>Formatting</strong>
-                    <p>Bullet points, numbered lists, blockquotes <code>></code></p>
-                </div>
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <div class="stat-value" id="statOriginal">0</div>
+                <div class="stat-label">Original</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statProcessed">0</div>
+                <div class="stat-label">Processed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value positive" id="statRemoved">0</div>
+                <div class="stat-label">Removed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statChanges">0</div>
+                <div class="stat-label">Changes</div>
             </div>
         </div>
+
+        <div class="changes-log" id="changesLog">
+            <div class="log-header">
+                <span class="log-title">Changes Applied</span>
+                <span class="log-count" id="logCount">0</span>
+            </div>
+            <div class="log-list" id="logList"></div>
+        </div>
+
+        <section class="features" id="features">
+            <div class="features-header">
+                <h2>What gets removed</h2>
+                <p>AI fingerprints we detect and strip</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">C</div>
+                    <h3>Claude Patterns</h3>
+                    <p>Excessive <code>**bold**</code> formatting, structured responses, "Let me explain..."</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">G</div>
+                    <h3>GPT Patterns</h3>
+                    <p>Double dashes <code>--</code>, em dashes, "Certainly!", "Absolutely!"</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">#</div>
+                    <h3>Markdown</h3>
+                    <p>Headers, code blocks, <code>[links](url)</code>, blockquotes, horizontal rules</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">1.</div>
+                    <h3>Structure</h3>
+                    <p>Numbered lists, bullet points, excessive whitespace, colon-before-list patterns</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <span class="footer-text">Built for humans, by humans</span>
+            <div class="footer-links">
+                <a href="https://github.com/Jackhacks3/ai-humanizer" target="_blank">Source</a>
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -529,11 +998,26 @@ Example AI patterns that will be removed:
         const fileInput = document.getElementById('fileInput');
         const inputText = document.getElementById('inputText');
         const outputText = document.getElementById('outputText');
-        const humanizeBtn = document.getElementById('humanizeBtn');
+        const processBtn = document.getElementById('processBtn');
         const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
         const loading = document.getElementById('loading');
-        const stats = document.getElementById('stats');
-        const changesList = document.getElementById('changesList');
+        const statsBar = document.getElementById('statsBar');
+        const changesLog = document.getElementById('changesLog');
+        const inputCount = document.getElementById('inputCount');
+        const outputCount = document.getElementById('outputCount');
+        const reductionText = document.getElementById('reductionText');
+
+        // Character count
+        inputText.addEventListener('input', () => {
+            inputCount.textContent = inputText.value.length.toLocaleString();
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            inputText.value = '';
+            inputCount.textContent = '0';
+        });
 
         // Drag and drop
         dropZone.addEventListener('click', () => fileInput.click());
@@ -563,9 +1047,7 @@ Example AI patterns that will be removed:
             if (file.type === 'application/pdf') {
                 const formData = new FormData();
                 formData.append('file', file);
-
-                loading.style.display = 'block';
-                outputText.style.display = 'none';
+                loading.classList.add('visible');
 
                 try {
                     const response = await fetch('/upload-pdf', {
@@ -574,31 +1056,37 @@ Example AI patterns that will be removed:
                     });
                     const data = await response.json();
                     inputText.value = data.text;
+                    inputCount.textContent = data.text.length.toLocaleString();
                 } catch (error) {
-                    alert('Error processing PDF: ' + error.message);
+                    console.error('Error processing PDF:', error);
                 } finally {
-                    loading.style.display = 'none';
-                    outputText.style.display = 'block';
+                    loading.classList.remove('visible');
                 }
             } else if (file.type === 'text/plain') {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     inputText.value = e.target.result;
+                    inputCount.textContent = e.target.result.length.toLocaleString();
                 };
                 reader.readAsText(file);
             }
         }
 
-        humanizeBtn.addEventListener('click', async () => {
-            const text = inputText.value.trim();
-            if (!text) {
-                alert('Please enter some text to humanize');
-                return;
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                processBtn.click();
             }
+        });
 
-            humanizeBtn.disabled = true;
-            loading.style.display = 'block';
-            outputText.style.display = 'none';
+        // Process button
+        processBtn.addEventListener('click', async () => {
+            const text = inputText.value.trim();
+            if (!text) return;
+
+            processBtn.disabled = true;
+            loading.classList.add('visible');
 
             try {
                 const response = await fetch('/humanize', {
@@ -609,46 +1097,82 @@ Example AI patterns that will be removed:
                 const data = await response.json();
 
                 outputText.value = data.humanized;
+                outputCount.textContent = data.humanized_length.toLocaleString();
 
-                // Update stats
-                document.getElementById('originalLen').textContent = data.original_length;
-                document.getElementById('humanizedLen').textContent = data.humanized_length;
-                document.getElementById('reduction').textContent = data.reduction;
-                stats.style.display = 'grid';
+                // Stats
+                document.getElementById('statOriginal').textContent = data.original_length.toLocaleString();
+                document.getElementById('statProcessed').textContent = data.humanized_length.toLocaleString();
+                document.getElementById('statRemoved').textContent = data.reduction.toLocaleString();
+                document.getElementById('statChanges').textContent = data.changes.length;
+                statsBar.classList.add('visible');
 
-                // Update changes list
-                const changesUl = document.getElementById('changesUl');
-                changesUl.innerHTML = '';
+                if (data.reduction > 0) {
+                    reductionText.textContent = `-${data.reduction} chars removed`;
+                } else {
+                    reductionText.textContent = '';
+                }
+
+                // Changes log
+                const logList = document.getElementById('logList');
+                logList.innerHTML = '';
+                document.getElementById('logCount').textContent = data.changes.length;
+
                 if (data.changes.length > 0) {
                     data.changes.forEach(change => {
-                        const li = document.createElement('li');
-                        li.textContent = '✓ ' + change;
-                        changesUl.appendChild(li);
+                        const item = document.createElement('div');
+                        item.className = 'log-item';
+                        item.innerHTML = `
+                            <span class="log-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </span>
+                            <span>${change}</span>
+                        `;
+                        logList.appendChild(item);
                     });
-                    changesList.style.display = 'block';
+                    changesLog.classList.add('visible');
                 } else {
-                    const li = document.createElement('li');
-                    li.textContent = 'No AI patterns detected';
-                    changesUl.appendChild(li);
-                    changesList.style.display = 'block';
+                    const item = document.createElement('div');
+                    item.className = 'log-item';
+                    item.innerHTML = '<span>No AI patterns detected</span>';
+                    logList.appendChild(item);
+                    changesLog.classList.add('visible');
                 }
 
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Error:', error);
             } finally {
-                humanizeBtn.disabled = false;
-                loading.style.display = 'none';
-                outputText.style.display = 'block';
+                processBtn.disabled = false;
+                loading.classList.remove('visible');
             }
         });
 
-        copyBtn.addEventListener('click', () => {
-            outputText.select();
-            document.execCommand('copy');
-            copyBtn.textContent = 'Copied!';
-            setTimeout(() => {
-                copyBtn.textContent = 'Copy to Clipboard';
-            }, 2000);
+        // Copy button
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(outputText.value);
+                copyBtn.classList.add('success');
+                copyBtn.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Copied
+                `;
+                setTimeout(() => {
+                    copyBtn.classList.remove('success');
+                    copyBtn.innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                        Copy
+                    `;
+                }, 2000);
+            } catch (err) {
+                outputText.select();
+                document.execCommand('copy');
+            }
         });
     </script>
 </body>
